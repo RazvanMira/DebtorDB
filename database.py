@@ -1,29 +1,39 @@
 """ A module for the persistence layer"""
 
 import sqlite3
+import typing as t
 
 
 class DatabaseManager:
     """ A class specialized for the persistence layer using SQLite"""
     
     def __init__(self, database_filename: str):
-        """ Initializes the connection with tha SQLite database """
+        """ Initializes the connection with the SQLite database """
+
         print(f"Connecting to {database_filename}")
         self.connection = sqlite3.connect(database_filename)
 
     def __del__(self):
         """  Closes the connection when the database manager is no longer used """
+
         print(f"Closing connection")
         self.connection.close()
 
-    def _execute(self, statement: str) -> sqlite3.Cursor:
-        """ Takes in a SQL statement and executes it with SQLite """
-        cursor = self.connection.cursor()
-        cursor.execute(statement)
-        return cursor
+    def _execute(self, statement: str, values: t.Optional[t.Tuple[str]] = None) -> sqlite3.Cursor:
+        """ Takes in a SQL statement and optionally the values for placeholders and executes it with SQLite """
+        try:
+            with self.connection:
+                cursor = self.connection.cursor()
+                cursor.execute(statement, values or [])
+                return cursor
+        except (sqlite3.OperationalError, sqlite3.IntegrityError):
+            print(f"Something went wrong with the following transaction:\n{statement}")
+            raise
 
-    def create_table(self, table_name: str, columns: dict) -> None:
-        """ Takes in a table name and the columns with names as keys and types as values and creates the CREATE TABLE statement to be executed with SQLite """
+    def create_table(self, table_name: str, columns: t.Dict[str, str]) -> None:
+        """ Takes in a table name and the columns with names as keys and types as values 
+        and creates the CREATE TABLE statement to be executed with SQLite """
+        
         columns_with_types = []
 
         for column_name, data_type in columns.items():
@@ -44,3 +54,80 @@ class DatabaseManager:
 
         statement = f"DROP TABLE {table_name};"
         self._execute(statement)
+
+    """
+    INSERT INTO
+        bookmarks (
+            title,
+            url,
+            notes,
+            date_added
+        ) VALUES (
+            ?,
+            ?,
+            ?,
+            ?
+        );
+    """
+
+    def add(self, table_name: str, data: t.Dict[str, str]) -> None:
+        """ Takes in a table name to INSERT data INTO and a data dictionary with columns as keys and values as values """
+
+        column_names = ", ".join(data.keys())
+        placeholders = ", ".join(["?"] * len(data.keys()))
+        column_values = tuple(data.values())
+
+        statement = f"""
+            INSERT INTO
+                {table_name} (
+                    {column_names}
+                ) VALUES (
+                    {placeholders}
+                );
+        """
+
+        self._execute(statement, column_values)
+
+    def delete(self, table_name: str, criteria: t.Dict[str, str]) -> None:
+        """ Takes in a table name and a criteria to DELETE FROM """
+
+        placeholders = [f"{column} = ?" for column in criteria.keys()]
+        delete_criteria = " AND ". join(placeholders)
+        delete_criteria_values = tuple(criteria.values)
+
+        statement = f""" 
+            DELETE FROM 
+                {table_name} 
+            WHERE 
+                {delete_criteria};
+        """
+        print(statement) 
+
+        self._execute(statement, delete_criteria_values)
+
+    def select(
+            self, 
+            table_name: str, 
+            criteria: t.Dict[str, str] = {},
+            order_by: t.Optional[str] = None,
+            ordered_descending: bool = False,
+        ) -> sqlite3.Cursor:
+        """ Takes in a table name and optionally a criteria as a dictionary, 
+        a column to order by and a boolean flag to order it by that column descending or not"""
+
+        select_criteria_values = tuple(criteria.values())
+
+        statement = f"SELECT * FROM {table_name} "
+        if criteria:
+            placeholders = [f"{column} = ?" for column in criteria.keys()]
+            select_criteria = " AND ".join(placeholders)
+            statement = statement + f" WHERE {select_criteria}"
+
+        if order_by:
+            statement = statement + f" ORDER BY {order_by}"
+            if ordered_descending:
+                statement = statement + " DESC" 
+
+        statement = statement + ";"
+        
+        return self._execute(statement, select_criteria_values)

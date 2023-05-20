@@ -3,6 +3,8 @@
 import sqlite3
 import typing as t
 
+from textwrap import dedent
+
 
 class DatabaseManager:
     """ A class specialized for the persistence layer using SQLite"""
@@ -47,7 +49,7 @@ class DatabaseManager:
             );
         """
 
-        self._execute(statement)
+        self._execute(dedent(statement))
 
     def drop_table(self, table_name: str) -> None:
         """ Takes in a table name to delete using the DROP TABLE statement to be executed with SQLite """

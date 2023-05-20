@@ -43,13 +43,15 @@ class DatabaseManager:
             columns_with_types.append(current_column)
         columns_in_statement = ", ".join(columns_with_types)
 
-        statement = f"""
-            CREATE TABLE IF NOT EXISTS {table_name}(
-                {columns_in_statement}
-            );
-        """
+        statement = dedent(
+            f"""
+                CREATE TABLE IF NOT EXISTS {table_name}(
+                    {columns_in_statement}
+                );
+            """
+        )
 
-        self._execute(dedent(statement))
+        self._execute(statement)
 
     def drop_table(self, table_name: str) -> None:
         """ Takes in a table name to delete using the DROP TABLE statement to be executed with SQLite """
@@ -79,14 +81,16 @@ class DatabaseManager:
         placeholders = ", ".join(["?"] * len(data.keys()))
         column_values = tuple(data.values())
 
-        statement = f"""
-            INSERT INTO
-                {table_name} (
-                    {column_names}
-                ) VALUES (
-                    {placeholders}
-                );
-        """
+        statement = dedent(
+            f"""
+                INSERT INTO
+                    {table_name} (
+                        {column_names}
+                    ) VALUES (
+                        {placeholders}
+                    );
+            """
+        )
 
         self._execute(statement, column_values)
 
@@ -97,12 +101,14 @@ class DatabaseManager:
         delete_criteria = " AND ". join(placeholders)
         delete_criteria_values = tuple(criteria.values)
 
-        statement = f""" 
-            DELETE FROM 
-                {table_name} 
-            WHERE 
-                {delete_criteria};
-        """
+        statement = dedent(
+            f""" 
+                DELETE FROM 
+                    {table_name} 
+                WHERE 
+                    {delete_criteria};
+            """
+        )
         print(statement) 
 
         self._execute(statement, delete_criteria_values)

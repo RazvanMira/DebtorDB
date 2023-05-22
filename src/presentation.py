@@ -1,5 +1,6 @@
 """ A module for the presentation layer """
 
+import os
 import typing as t
 from src.commands import Command
 
@@ -13,7 +14,11 @@ class Option:
     def choose(self):
         data = self.prep_call() if self.prep_call else None
         result = self.command.execute(data) if data else self.command.execute()
-        print(result)
+        if isinstance(result, list):
+            for line in result:
+                print(line)
+        else:
+            print(result)
 
     def __str__(self):
         return self.name
@@ -36,4 +41,6 @@ def get_option_choice(options: t.Dict[str, Option]) -> Option:
         choice = input("Choose an option: ")
         return options[choice.upper()]
     
-    
+def clear_screen():
+    clear_command = "cls" if os.name == "nt" else "clear"
+    os.system(clear_command)    

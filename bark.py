@@ -6,24 +6,35 @@ def loop():
     options = {
         "A": p.Option(
             name="Add a bookmark",
-            command=c.AddBookmarkCommand()
+            command=c.AddBookmarkCommand(),
+            prep_call=p.get_new_bookmark_data,
         ),
-        "B": p.Option(
-            name="List bookmarks by date",
-            command=c.ListBookmarksCommand()
+        "S": p.Option(
+            name="Get bookmark by ID",
+            command=c.GetBookmarkCommand(),
+            prep_call=p.get_bookmark_id,
         ),
+        "B": p.Option(name="List bookmarks by date", command=c.ListBookmarksCommand()),
         "T": p.Option(
             name="List bookmarks by title",
-            command=c.ListBookmarksCommand(order_by="title")
+            command=c.ListBookmarksCommand(order_by="title"),
+        ),
+        "E": p.Option(
+            name="Edit a bookmark",
+            command=c.EditBookmarkCommand(),
+            prep_call=p.get_update_bookmark_data,
+        ),
+        "G": p.Option(
+            name="Import Github stars",
+            command=c.ImportGithubStarsCommand(),
+            prep_call=p.get_github_import_options,
         ),
         "D": p.Option(
-            name="Delete bookmark",
-            command=c.DeleteBookmarkCommand()
+            name="Delete a bookmark",
+            command=c.DeleteBookmarkCommand(),
+            prep_call=p.get_bookmark_id,
         ),
-        "Q": p.Option(
-            name="Quit",
-            command=c.QuitCommand()
-        )
+        "Q": p.Option(name="Quit", command=c.QuitCommand()),
     }
 
     p.clear_screen()

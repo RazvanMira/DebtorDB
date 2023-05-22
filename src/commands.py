@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-from src.database import DatabaseManager
+from database import DatabaseManager
 
 
 db = DatabaseManager("bookmarks.db")

@@ -3,7 +3,7 @@
 import os
 import typing as t
 
-from src.commands import Command
+from commands import Command
 
 
 class Option:

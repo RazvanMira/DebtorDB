@@ -1,10 +1,8 @@
 from src import commands as c
 from src import presentation as p
 
-if __name__ == "__main__":
-    c.CreateBookmarksTableCommand().execute()
-    print("Welcome to Bark!")
 
+def loop():
     options = {
         "A": p.Option(
             name="Add a bookmark",
@@ -28,6 +26,17 @@ if __name__ == "__main__":
         )
     }
 
+    p.clear_screen()
     p.print_options(options)
-
     chosen_option = p.get_option_choice(options)
+    p.clear_screen()
+    chosen_option.choose()
+
+    _ = input("Press ENTER to return to menu")
+
+if __name__ == "__main__":
+    c.CreateBookmarksTableCommand().execute()
+    print("Welcome to Bark!")
+
+    while True:
+        loop()

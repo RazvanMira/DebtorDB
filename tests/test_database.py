@@ -1,33 +1,34 @@
 import sqlite3
+
+from textwrap import dedent
 from unittest import TestCase
 from unittest.mock import patch
-from textwrap import dedent
+
 from src.database import DatabaseManager
 
 
-class CreateDatabaseTableTest(TestCase):
+class CreateDatabaseTableTests(TestCase):
     def setUp(self):
-        self.db = DatabaseManager(" :memory: ")
+        self.db = DatabaseManager(":memory:")
 
     def test_create_table(self):
         with patch("src.database.DatabaseManager._execute") as mocked_execute:
             self.db.create_table(
                 table_name="test_table",
                 columns={
-                "id": "integer primary key autoincrement",
-                "test_column_one": "text not null",
-                "test_column_two": "text not null"
+                    "id": "integer primary key autoincrement",
+                    "test_column_one": "text not null",
+                    "test_column_two": "text not null"
                 }
             )
-
+            
             mocked_execute.assert_called_with(
-                dedent("""
-                    CREATE TABLE IF NOT EXISTS test_table(
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        test_column_one TEXT NOT NULL,
-                        test_column_two TEXT NOT NULL
-                    );
-                """
+                dedent(
+                    """
+                        CREATE TABLE IF NOT EXISTS test_table (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT, test_column_one TEXT NOT NULL, test_column_two TEXT NOT NULL
+                        );
+                    """
                 )
             )
 
@@ -36,9 +37,9 @@ class CreateDatabaseTableTest(TestCase):
             self.db.create_table(
                 table_name="",
                 columns={
-                "id": "integer primary key autoincrement",
-                "test_column_one": "text not null",
-                "test_column_two": "text not null"
+                    "id": "integer primary key autoincrement",
+                    "test_column_one": "text not null",
+                    "test_column_two": "text not null"
                 }
             )
 
@@ -48,7 +49,7 @@ class CreateDatabaseTableTest(TestCase):
 
 class DropDatabaseTableTest(TestCase):
     def setUp(self):
-        self.db = DatabaseManager(" :memory: ")
+        self.db = DatabaseManager(":memory:")
 
     def test_drop_table(self):
         with patch("src.database.DatabaseManager._execute") as mocked_execute:
@@ -58,9 +59,10 @@ class DropDatabaseTableTest(TestCase):
     def tearDown(self):
         del self.db
 
+
 class AddEntryToTableTest(TestCase):
     def setUp(self):
-        self.db = DatabaseManager(" :memory: ")
+        self.db = DatabaseManager(":memory:")
 
     def test_add_entry(self):
         with patch("src.database.DatabaseManager._execute") as mocked_execute:
@@ -73,24 +75,25 @@ class AddEntryToTableTest(TestCase):
             )
             mocked_execute.assert_called_once_with(
                 dedent(
-                """
-                INSERT INTO
-                    test_table (
+                    """
+                    INSERT INTO
+                        test_table (
                             key_one, key_two
                         ) VALUES (
                             ?, ?
                         );
                     """
-                ),
+                ), 
                 ("value_one", "value_two")
             )
 
     def tearDown(self):
         del self.db
 
+
 class SelectEntryFromTableTest(TestCase):
     def setUp(self):
-        self.db = DatabaseManager(" :memory: ")
+        self.db = DatabaseManager(":memory:")
 
     def test_select_entry(self):
         with patch("src.database.DatabaseManager._execute") as mocked_execute:
@@ -105,7 +108,7 @@ class SelectEntryFromTableTest(TestCase):
         with patch("src.database.DatabaseManager._execute") as mocked_execute:
             self.db.select(
                 table_name="test_table",
-                data={
+                criteria={
                     "key_one": "value_one",
                     "key_two": "value_two"
                 },
@@ -119,18 +122,19 @@ class SelectEntryFromTableTest(TestCase):
         with patch("src.database.DatabaseManager._execute") as mocked_execute:
             self.db.select(
                 table_name="test_table",
-                data={
+                criteria={
                     "key_one": "value_one",
                     "key_two": "value_two"
                 },
+                order_by="key_one"
             )
             mocked_execute.assert_called_once_with(
-                "SELECT * FROM test_table WHERE key_one = ? AND key_two = ? ORDERED BY key_one;",
+                "SELECT * FROM test_table WHERE key_one = ? AND key_two = ? ORDER BY key_one;",
                 ("value_one", "value_two")
             )
 
-        def tearDown(self):
-            del self.db
+    def tearDown(self):
+        del self.db
 
 
 class DeleteEntryFromTableTest(TestCase):

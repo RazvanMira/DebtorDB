@@ -2,6 +2,7 @@
 
 import sys
 import typing as t
+import requests 
 
 from datetime import datetime
 from pathlib import Path

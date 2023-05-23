@@ -53,48 +53,27 @@ def get_user_input(label: str, required: bool = True) -> t.Optional[str]:
     return value
 
 
-def get_new_bookmark_data() -> t.Dict[str, t.Optional[str]]:
+def get_new_debtor_data() -> t.Dict[str, t.Optional[str]]:
     result = {
-        "title": get_user_input("Title"),
-        "url": get_user_input("URL"),
+        "name": get_user_input("Name"),
+        "sum_owed": get_user_input("Sum owed"),
+        "date_due": get_user_input("Date due"),
         "notes": get_user_input("Notes", required=False),
     }
 
     return result
 
 
-def get_bookmark_id() -> int:
-    result = int(get_user_input("Enter a bookmark ID"))  
+def get_debtor_id() -> int:
+    result = int(get_user_input("Enter a Debtor's ID"))  
     return result
 
 
-def get_update_bookmark_data() -> t.Dict[str, t.Union[int, t.Dict[str, str]]]:
-    bookmark_id = int(get_user_input("Enter a bookmark ID to edit"))
-    field = get_user_input("Choose a value to edit (title, url, notes)")
+def get_update_debtor_data() -> t.Dict[str, t.Union[int, t.Dict[str, str]]]:
+    Debtor_id = int(get_user_input("Enter a Debtor ID to edit"))
+    field = get_user_input("Choose a value to edit (name, sum_owed, date_due, notes)")
     new_value = get_user_input(f"Enter a new value for {field}")
-    return {"id": bookmark_id, "update": {field: new_value}}
-
-
-def get_github_import_options() -> t.Dict[str, t.Union[str, bool]]:
-    github_username = get_user_input("Please input the Github username")
-    preserve_timestamps = get_user_input("Preserve timestamps? [Y/n]")
-
-    if preserve_timestamps in ["Y", "y", ""]:
-        preserve_timestamps = True
-    else:
-        preserve_timestamps = False
-
-    return {
-        "github_username": github_username,
-        "preserve_timestamps": preserve_timestamps,
-    }
-
-
-def get_file_name() -> str:
-    file_name = get_user_input(
-        "Please type in the name of the Excel file where you want to save"
-    )
-    return file_name
+    return {"id": Debtor_id, "update": {field: new_value}}
 
 
 def clear_screen():

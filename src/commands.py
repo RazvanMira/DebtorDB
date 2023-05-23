@@ -11,7 +11,7 @@ from pathlib import Path
 from src.database import DatabaseManager
 
 
-db = DatabaseManager("bookmarks.db")
+db = DatabaseManager("debtors.db")
 
 CommandInput = t.Optional[t.Union[t.Dict[str, str], int]]
 CommandResult = t.Optional[t.Union[t.List[str], str]]
@@ -26,25 +26,26 @@ class Command(t.Protocol):
         pass
 
 
-class CreateBookmarksTableCommand:
+class CreateDebtorsTableCommand:
     """A Command class that creates the SQL table"""
 
     def execute(self):
         """The actual execution of the command"""
 
         db.create_table(
-            table_name="bookmarks",
+            table_name="debtors",
             columns={
                 "id": "integer primary key autoincrement",
-                "title": "text not null",
-                "url": "text not null",
+                "name": "text not null",
+                "sum_owed": "integer not null",
+                "date_due": "text not null",
                 "notes": "text",
                 "date_added": "text not null",
             },
         )
 
 
-class AddBookmarkCommand:
+class AddDebtorCommand:
     """A Command class that inserts into the SQL table"""
 
     def execute(self, data: t.Dict[str, str], timestamp: t.Optional[str] = None) -> str:
@@ -52,12 +53,12 @@ class AddBookmarkCommand:
 
         date_added = timestamp or datetime.utcnow().isoformat()
         data.setdefault("date_added", date_added)
-        db.add(table_name="bookmarks", data=data)
-        return "Bookmark added!"
+        db.add(table_name="debtors", data=data)
+        return "Debtor added!"
 
 
-class ListBookmarksCommand:
-    """A Command class that will list all the bookmarks in the SQL table"""
+class ListDebtorsCommand:
+    """A Command class that will list all the Debtors in the SQL table"""
 
     def __init__(self, order_by: str = "date_added"):
         self.order_by = order_by
@@ -65,80 +66,35 @@ class ListBookmarksCommand:
     def execute(self) -> t.List[str]:
         """The actual execution of the command"""
 
-        cursor = db.select(table_name="bookmarks", order_by=self.order_by)
+        cursor = db.select(table_name="debtors", order_by=self.order_by)
         results = cursor.fetchall()
         return results
 
 
-class GetBookmarkCommand:
-    """A Command class that will return a single bookmark based on an ID"""
+class GetDebtorCommand:
+    """A Command class that will return a single Debtor based on an ID"""
 
     def execute(self, data: int) -> t.Optional[tuple]:
-        result = db.select(table_name="bookmarks", criteria={"id": data}).fetchone()
+        result = db.select(table_name="debtors", criteria={"id": data}).fetchone()
         return result
 
 
-class EditBookmarkCommand:
-    """A Command class that will edit a bookmark identified with an ID"""
+class EditDebtorCommand:
+    """A Command class that will edit a Debtor identified with an ID"""
 
     def execute(self, data: t.Dict[str, str]) -> str:
         db.update(
-            table_name="bookmarks", criteria={"id": data["id"]}, data=data["update"]
+            table_name="debtors", criteria={"id": data["id"]}, data=data["update"]
         )
-        return "Bookmark updated!"
+        return "Debtor information updated!"
 
 
-class DeleteBookmarkCommand:
-    """A Command class that will delete a bookmark from the SQL table"""
+class DeleteDebtorCommand:
+    """A Command class that will delete a Debtor from the SQL table"""
 
     def execute(self, data: int) -> str:
-        db.delete(table_name="bookmarks", criteria={"id": data})
-        return "Bookmark deleted!"
-
-
-class ImportGithubStarsCommand:
-    """A Command class that will take the stars from Github and save them into the DB"""
-
-    def execute(self, data: t.Dict[str, str]) -> str:
-        bookmarks_imported = 0
-
-        github_username = data["github_username"]
-        next_page_of_results = f"https://api.github.com/users/{github_username}/starred"
-
-        while next_page_of_results:
-            stars_response = requests.get(
-                next_page_of_results,
-                headers={"Accept": "application/vnd.github.v3.star+json"},
-            )
-
-            if "next" in stars_response.links.keys():
-                next_page_of_results = stars_response.links["next"]["url"]
-            else:
-                next_page_of_results = None
-
-            for repo_response in stars_response.json():
-                repo = repo_response["repo"]
-                starred_at = repo_response["starred_at"]
-
-                if data["preserve_timestamps"]:
-                    timestamp = datetime.strptime(
-                        starred_at, "%Y-%m-%dT%H:%M:%SZ"
-                    ).isoformat()
-                else:
-                    timestamp = None
-
-                AddBookmarkCommand().execute(
-                    data={
-                        "title": repo["name"],
-                        "url": repo["html_url"],
-                        "notes": repo["description"],
-                    },
-                    timestamp=timestamp,
-                )
-
-                bookmarks_imported += 1
-
-        return f"Imported {bookmarks_imported} bookmarks from starred repos!"
+        db.delete(table_name="debtors", criteria={"id": data})
+        return "Debtor deleted!"
 
 
 class QuitCommand:

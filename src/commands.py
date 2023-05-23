@@ -60,7 +60,7 @@ class AddDebtorCommand:
 class ListDebtorsCommand:
     """A Command class that will list all the Debtors in the SQL table"""
 
-    def __init__(self, order_by: str = "date_added"):
+    def __init__(self, order_by: str = "date_due"):
         self.order_by = order_by
 
     def execute(self) -> t.List[str]:

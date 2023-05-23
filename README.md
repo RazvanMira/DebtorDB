@@ -1,4 +1,4 @@
-# BARK
+# DebtorDB
 
 ## Setting up the virtual environment 
 
